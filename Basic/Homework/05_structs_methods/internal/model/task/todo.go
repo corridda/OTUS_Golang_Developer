@@ -5,53 +5,44 @@ import (
 	"time"
 )
 
-type MyDate struct {
-	day   int
-	month int
-	year  int
-}
-
-func NewMyDate(day int, month int, year int) MyDate {
-	return MyDate{
-		day:   day,
-		month: month,
-		year:  year,
-	}
-}
+const (
+	Created   = "Создана"
+	Seen      = "Просмотрена"
+	InProcess = "В работе"
+	Suspended = "Приостановлена"
+	Submitted = "Решена, ждет контроля"
+	Completed = "Завершена"
+	Cancelled = "Отменена"
+	Returned  = "Возвращена на доработку"
+	Backlog   = "Бэклог"
+)
 
 type Task struct {
 	name          string
 	description   string
 	initTimeStamp time.Time
 	dueDate       time.Time
+	status        string
 }
 
-func (myTaskP *Task) SetDueDate(myDate MyDate) {
-	(*myTaskP).dueDate = time.Date(
-		myDate.year,
-		time.Month(myDate.month),
-		myDate.day,
-		23,
-		59,
-		59,
-		0,
-		time.Now().Location(),
-	)
-}
-
-func NewTask(name string, descr string, dueDate MyDate) Task {
+func NewTask(name, descr string, dueDate string) Task {
+	userDueDate, err := time.Parse("02.01.2006", dueDate)
+	if err != nil {
+		panic("Введенная дата исполнения имеет не корректный формат.")
+	}
 	myTask := Task{
 		name:          name,
 		description:   descr,
 		initTimeStamp: time.Now(),
+		dueDate:       userDueDate,
+		status:        Created,
 	}
-	(&myTask).SetDueDate(dueDate)
 	return myTask
 }
 
 func (myTask *Task) String() string {
 	return fmt.Sprintf(
-		"\n\tИмя задачи: %v\n\tОписание задачи: %v\n\tДата постановки задачи: %v\n\tДата исполнения: %v",
-		(*myTask).name, (*myTask).description, (*myTask).initTimeStamp.Format(time.DateTime), (*myTask).dueDate.Format(time.DateTime),
+		"Имя задачи: %v\nОписание задачи: %v\nДата постановки задачи: %v\nДата исполнения: %v\nСтатус: %v\n",
+		myTask.name, myTask.description, myTask.initTimeStamp.Format(time.DateTime), myTask.dueDate.Format(time.DateTime), myTask.status,
 	)
 }

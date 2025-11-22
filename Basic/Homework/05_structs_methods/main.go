@@ -3,19 +3,25 @@ package main
 import (
 	"fmt"
 
-	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/05_structs_methods/internal/model/menu"
 	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/05_structs_methods/internal/model/task"
 )
 
+var menu = struct {
+	add    string
+	view   string
+	update string
+	delete string
+}{
+	add:    "Добавить",
+	view:   "Отобразить",
+	update: "Обновить",
+	delete: "Удалить",
+}
+
 func main() {
-	myMenu := menu.NewMenu()
-	fmt.Println(myMenu)
+	fmt.Printf("Меню: %v\n\n", menu)
 
-	dueDate := task.NewMyDate(31, 12, 2025)
-	newTask := task.NewTask("taskName", "taskDescr", dueDate)
+	userInputDueDate := "01.01.2026"
+	newTask := task.NewTask("taskName", "taskDescr", userInputDueDate)
 	fmt.Println((&newTask).String())
-
-	// fmt.Println(time.Now())
-	// fmt.Println(time.Now().Local())
-	// fmt.Println(time.Now().Location())
 }
