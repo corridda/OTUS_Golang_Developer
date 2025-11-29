@@ -6,10 +6,15 @@ import (
 	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/06_interfaces/internal/model"
 )
 
+type Remindable interface {
+	String() string
+	ChangeAlarm(string)
+}
+
 var Tasks = []model.Task{}
 var Notes = []model.Note{}
 
-func SaveRemindable(r model.Remindable) {
+func SaveRemindable(r Remindable) {
 	switch value := r.(type) {
 	case *model.Task:
 		Tasks = append(Tasks, *value)

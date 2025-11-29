@@ -53,7 +53,7 @@ func (myTask Task) String() string {
 	)
 }
 
-// ChangeAlarm implements Remindable.
+// ChangeAlarm implements repository.Remindable.
 func (myTask *Task) ChangeAlarm(new_date string) {
 	userDate, err := time.Parse("02.01.2006", new_date)
 	if err != nil {

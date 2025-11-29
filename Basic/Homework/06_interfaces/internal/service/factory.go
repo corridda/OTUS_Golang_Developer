@@ -6,7 +6,7 @@ import (
 )
 
 func CreateNewRemindable(name, descr, futurePoint string, isTask bool) {
-	var remindable model.Remindable
+	var remindable repository.Remindable
 	if isTask {
 		task := model.NewTask(name, descr, futurePoint)
 		remindable = &task

@@ -35,7 +35,7 @@ func (myNote Note) String() string {
 	)
 }
 
-// ChangeAlarm implements Remindable.
+// ChangeAlarm implements repository.Remindable.
 func (myNote *Note) ChangeAlarm(new_date_time string) {
 	userDateTime, err := time.Parse("02.01.2006 15:04", new_date_time)
 	if err != nil {
