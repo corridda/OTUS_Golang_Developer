@@ -12,19 +12,20 @@ func CreateNewRemindable(
 	descr,
 	futurePoint string,
 	isTask bool,
-	chTask chan *model.Task,
-	chNote chan *model.Note,
+	chRemindable chan repository.Remindable,
 	mutex *sync.RWMutex,
 ) {
 	chStop := make(chan any)
+	var remindable repository.Remindable
 	if isTask {
 		task := model.NewTask(name, descr, futurePoint)
-		chTask <- &task
+		remindable = &task
 	} else {
 		note := model.NewNote(name, descr, futurePoint)
-		chNote <- &note
+		remindable = &note
 	}
+	chRemindable <- remindable
 
-	go repository.SaveRemindable(chTask, chNote, chStop, mutex)
+	go repository.SaveRemindable(chRemindable, chStop, mutex)
 	<-chStop
 }
