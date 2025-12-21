@@ -98,10 +98,6 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	// запуск логгера
-	ticker := time.NewTicker(time.Millisecond * 200)
-	go service.LogRemidables(ctx, ticker, &mutex)
-
 	// заполнение срезов задач и заметок соответствующими данными из json-файлов
 	wg.Add(2)
 	go repository.FillTasksFromJSON(&wg, errsTasks)
@@ -119,6 +115,13 @@ func main() {
 	if err := <-errsNotes; err != nil {
 		panic(fmt.Sprintf("ошибка наполнения repository.Notes из файла notes.json: %v", err))
 	}
+
+	// вычисление хэшей задач/заметок при начальном считывании из json-файлов
+	service.HashRemidablesInit(&mutex)
+
+	// запуск регулярного логгера для новых задач/заметок
+	ticker := time.NewTicker(time.Millisecond * 200)
+	go service.LogRemidables(ctx, ticker, &mutex)
 
 	// генерация новых задач и заметок
 	n := 10

@@ -14,7 +14,11 @@ import (
 var taskHashes [][32]byte
 var noteHashes [][32]byte
 
-func LogRemidables(ctx context.Context, ticker *time.Ticker, mutex *sync.RWMutex) {
+func LogRemidables(
+	ctx context.Context,
+	ticker *time.Ticker,
+	mutex *sync.RWMutex,
+) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -27,7 +31,6 @@ func LogRemidables(ctx context.Context, ticker *time.Ticker, mutex *sync.RWMutex
 			// Проверить на наличие новых задач и логировать их в консоль, сохраняя хэш
 			for _, task := range repository.Tasks {
 				taskHash := sha256.Sum256([]byte(task.String()))
-				// fmt.Printf("taskHash: %x\n", taskHash)
 				if !slices.Contains(taskHashes, taskHash) {
 					taskHashes = append(taskHashes, taskHash)
 					fmt.Println("*** Добавлена новая задача ***")
@@ -48,4 +51,27 @@ func LogRemidables(ctx context.Context, ticker *time.Ticker, mutex *sync.RWMutex
 			mutex.RUnlock()
 		}
 	}
+}
+
+// Вычисление хэшей задач/заметок при начальном считывании из json-файлов
+func HashRemidablesInit(mutex *sync.RWMutex) {
+	mutex.RLock()
+
+	// Проверить на наличие новых задач и вычислить их хэш
+	for _, task := range repository.Tasks {
+		taskHash := sha256.Sum256([]byte(task.String()))
+		if !slices.Contains(taskHashes, taskHash) {
+			taskHashes = append(taskHashes, taskHash)
+		}
+	}
+
+	// Проверить на наличие новых заметок и вычислить их хэш
+	for _, note := range repository.Notes {
+		noteHash := sha256.Sum256([]byte(note.String()))
+		if !slices.Contains(noteHashes, noteHash) {
+			noteHashes = append(noteHashes, noteHash)
+		}
+	}
+
+	mutex.RUnlock()
 }
