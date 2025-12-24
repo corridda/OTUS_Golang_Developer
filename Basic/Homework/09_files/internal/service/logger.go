@@ -19,6 +19,8 @@ func LogRemidables(
 	ticker *time.Ticker,
 	mutex *sync.RWMutex,
 ) {
+	HashRemidablesInit(mutex)
+
 	for {
 		select {
 		case <-ctx.Done():

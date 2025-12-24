@@ -116,10 +116,7 @@ func main() {
 		panic(fmt.Sprintf("ошибка наполнения repository.Notes из файла notes.json: %v", err))
 	}
 
-	// вычисление хэшей задач/заметок при начальном считывании из json-файлов
-	service.HashRemidablesInit(&mutex)
-
-	// запуск регулярного логгера для новых задач/заметок
+	// запуск логгера для новых задач/заметок
 	ticker := time.NewTicker(time.Millisecond * 200)
 	go service.LogRemidables(ctx, ticker, &mutex)
 
