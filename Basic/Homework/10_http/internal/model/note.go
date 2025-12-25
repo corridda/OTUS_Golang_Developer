@@ -6,6 +6,7 @@ import (
 )
 
 type Note struct {
+	Id             int       `json:"id"`
 	Name           string    `json:"name"`
 	Description    string    `json:"description"`
 	AlarmTimeStamp time.Time `json:"alarmTimeStamp"` // Сигнал напоминания в эту дату-время
@@ -30,8 +31,8 @@ func NewNote(name, descr, alarmDateTime string) Note {
 
 func (myNote Note) String() string {
 	return fmt.Sprintf(
-		"Имя заметки: %v\nОписание заметки: %v\nДата и время напоминания: %v\n",
-		myNote.Name, myNote.Description, myNote.AlarmTimeStamp.Format("02.01.2006 15:04"),
+		"Id заметки: %v\nИмя заметки: %v\nОписание заметки: %v\nДата и время напоминания: %v\n",
+		myNote.Id, myNote.Name, myNote.Description, myNote.AlarmTimeStamp.Format("02.01.2006 15:04"),
 	)
 }
 

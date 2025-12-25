@@ -1,65 +1,17 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/10_http/internal/repository"
 	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/10_http/internal/service"
 )
-
-// Искусственное заполенение списков задач и заметок
-func createList(
-	n int,
-	ctx context.Context,
-	chRemindable chan repository.Remindable,
-	mutex *sync.RWMutex,
-) {
-	wg := sync.WaitGroup{}
-	for i := 1; i <= n; i++ {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				nextDay := time.Now().Add(time.Duration(time.Hour) * 24 * time.Duration(i*n))
-				if i%2 == 0 {
-					dueDate := nextDay.Format("02.01.2006")
-					length := len(repository.Tasks)
-					service.CreateNewRemindable(
-						fmt.Sprintf("taskName %d", length+1),
-						"taskDescr",
-						dueDate,
-						true,
-						chRemindable,
-						mutex,
-					)
-				} else {
-					alarmTimeStamp := nextDay.Format("02.01.2006 15:04")
-					length := len(repository.Notes)
-					service.CreateNewRemindable(
-						fmt.Sprintf("noteName %d", length+1),
-						"noteDescr",
-						alarmTimeStamp,
-						false,
-						chRemindable,
-						mutex,
-					)
-				}
-			}
-		}(i)
-		time.Sleep(time.Millisecond * 200) // для того, чтобы логгер успевал отрабатывать
-	}
-	wg.Wait()
-}
 
 func createFiles(fileNames ...string) {
 	wg := sync.WaitGroup{}
@@ -94,10 +46,6 @@ func main() {
 	errsTasks := make(chan error, 1)
 	errsNotes := make(chan error, 1)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
 	// заполнение срезов задач и заметок соответствующими данными из json-файлов
 	wg.Add(2)
 	go repository.FillTasksFromJSON(&wg, errsTasks)
@@ -118,19 +66,25 @@ func main() {
 
 	// запуск логгера для новых задач/заметок
 	ticker := time.NewTicker(time.Millisecond * 200)
-	go service.LogRemidables(ctx, ticker, &mutex)
+	go service.LogRemidables(ticker, &mutex)
 
-	// генерация новых задач и заметок
-	n := 10
-	chRemindable := make(chan repository.Remindable, n)
-	go createList(n, ctx, chRemindable, &mutex)
+	// Создаём роутер
+	r := gin.Default()
+	api := r.Group("/api")
+	apiTasks := api.Group("/tasks")
+	apiNotes := api.Group("/notes")
+	apiTasks.GET("items", repository.GetTasks)            // /api/tasks/items
+	apiTasks.GET("item/id", repository.GetTasksById)      // /api/tasks/item/id/?id=<id_integer_number>
+	apiNotes.GET("items", repository.GetNotes)            // /api/notes/items
+	apiNotes.GET("item/id", repository.GetNotesById)      // /api/notes/item/id/?id=<id_integer_number>
+	apiTasks.POST("item", repository.PostNewTask)         // /api/tasks/item
+	apiNotes.POST("item", repository.PostNewNote)         // /api/tasks/item
+	apiTasks.PUT("item/id", repository.PutTaskById)       // /api/tasks/item/id/?id=<id_integer_number>
+	apiNotes.PUT("item/id", repository.PutNoteById)       // /api/notes/item/id/?id=<id_integer_number>
+	apiTasks.DELETE("item/id", repository.DeleteTaskById) // /api/tasks/item/id/?id=<id_integer_number>
+	apiNotes.DELETE("item/id", repository.DeleteNoteById) // /api/notes/item/id/?id=<id_integer_number>
 
-	sig := <-sigChan
-	cancel()
-	time.Sleep(time.Second)
-	fmt.Printf("Программа завершает свою работу по сигналу %v\n", sig)
+	// Запуск сервера на :8080
+	r.Run(":8080")
 
-	close(chRemindable)
-
-	// repository.PrintRemidables(&mutex)
 }

@@ -7,6 +7,7 @@ import (
 
 const (
 	Created   = "Создана"
+	Updated   = "Изменена"
 	Seen      = "Просмотрена"
 	InProcess = "В работе"
 	Suspended = "Приостановлена"
@@ -18,6 +19,7 @@ const (
 )
 
 type Task struct {
+	Id            int       `json:"id"`
 	Name          string    `json:"name"`
 	Description   string    `json:"description"`
 	InitTimeStamp time.Time `json:"initTimeStamp"`
@@ -48,8 +50,8 @@ func NewTask(name, descr, dueDate string) Task {
 
 func (myTask Task) String() string {
 	return fmt.Sprintf(
-		"Имя задачи: %v\nОписание задачи: %v\nДата постановки задачи: %v\nДата исполнения: %v\nСтатус: %v\n",
-		myTask.Name, myTask.Description, myTask.InitTimeStamp.Format("02.01.2006"), myTask.DueDate.Format("02.01.2006"), myTask.Status,
+		"Id задачи: %v\nИмя задачи: %v\nОписание задачи: %v\nДата постановки задачи: %v\nДата исполнения: %v\nСтатус: %v\n",
+		myTask.Id, myTask.Name, myTask.Description, myTask.InitTimeStamp.Format("02.01.2006"), myTask.DueDate.Format("02.01.2006"), myTask.Status,
 	)
 }
 
