@@ -1,0 +1,287 @@
+definitions:
+  repository.ChangingNote:
+    properties:
+      alarmTimeStamp:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  repository.ChangingTask:
+    properties:
+      description:
+        type: string
+      dueDate:
+        type: string
+      name:
+        type: string
+    type: object
+  repository.NewNote:
+    properties:
+      alarmTime:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - alarmTime
+    - description
+    - name
+    type: object
+  repository.NewTask:
+    properties:
+      description:
+        type: string
+      dueDate:
+        type: string
+      name:
+        type: string
+    required:
+    - description
+    - dueDate
+    - name
+    type: object
+host: localhost:8080/
+info:
+  contact: {}
+  description: API Server
+  title: Программа для управления задачами
+  version: "1"
+paths:
+  /api/notes/item:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Note data
+        in: body
+        name: newNote
+        required: true
+        schema:
+          $ref: '#/definitions/repository.NewNote'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: The note has been successfully created
+          schema:
+            type: string
+        "400":
+          description: 'Invalid request: the note hasn''t been created'
+          schema:
+            type: string
+      summary: Создать новую заметку
+      tags:
+      - Новая заметка
+  /api/notes/item/id:
+    delete:
+      parameters:
+      - description: Note ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: The note has been successfully deleted
+          schema:
+            type: string
+        "400":
+          description: 'Invalid request: the note hasn''t been deleted'
+          schema:
+            type: string
+        "404":
+          description: 'Not found: such a note doesn''t exist'
+          schema:
+            type: string
+      summary: Удалить заметку по ее ID
+      tags:
+      - Удалить заметку
+    get:
+      parameters:
+      - description: Note ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Getting the note is successful
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "404":
+          description: 'Not found: such a note doesn''t exist'
+          schema:
+            type: string
+      summary: Получить заметку по ее идентификатору
+      tags:
+      - Заметка по ID
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Note ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      - description: Note data
+        in: body
+        name: updatedNote
+        required: true
+        schema:
+          $ref: '#/definitions/repository.ChangingNote'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: The note has been successfully updated
+          schema:
+            type: string
+        "400":
+          description: 'Invalid request: the note hasn''t been updated'
+          schema:
+            type: string
+      summary: Изменить заметку по ее ID
+      tags:
+      - Изменить заметку
+  /api/notes/items:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Getting notes is successful
+          schema:
+            type: string
+      summary: Получить все заметки
+      tags:
+      - Заметки
+  /api/tasks/item:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Task data
+        in: body
+        name: newTask
+        required: true
+        schema:
+          $ref: '#/definitions/repository.NewTask'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: The task has been successfully created
+          schema:
+            type: string
+        "400":
+          description: 'Invalid request: the task hasn''t been created'
+          schema:
+            type: string
+      summary: Создать новую задачу
+      tags:
+      - Новая задача
+  /api/tasks/item/id:
+    delete:
+      parameters:
+      - description: Task ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: The task has been successfully deleted
+          schema:
+            type: string
+        "400":
+          description: 'Invalid request: the task hasn''t been deleted'
+          schema:
+            type: string
+        "404":
+          description: 'Not found: such a task doesn''t exist'
+          schema:
+            type: string
+      summary: Удалить задачу по ее ID
+      tags:
+      - Удалить задачу
+    get:
+      parameters:
+      - description: Task ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Getting the task is successful
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "404":
+          description: 'Not found: such a task doesn''t exist'
+          schema:
+            type: string
+      summary: Получить задачу по ее идентификатору
+      tags:
+      - Задача по ID
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Task ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      - description: Task data
+        in: body
+        name: updatedTask
+        required: true
+        schema:
+          $ref: '#/definitions/repository.ChangingTask'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: The task has been successfully updated
+          schema:
+            type: string
+        "400":
+          description: 'Invalid request: the task hasn''t been updated'
+          schema:
+            type: string
+      summary: Изменить задачу по ее ID
+      tags:
+      - Изменить задачу
+  /api/tasks/items:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Getting tasks is successful
+          schema:
+            type: string
+      summary: Получить все задачи
+      tags:
+      - Задачи
+swagger: "2.0"
