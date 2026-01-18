@@ -1,0 +1,20 @@
+[
+	{
+		"id": 1,
+		"name": "noteName 1",
+		"description": "noteDescr 1",
+		"alarmTimeStamp": "2026-01-15T20:00:00Z"
+	},
+	{
+		"id": 2,
+		"name": "new noteName 2",
+		"description": "new noteDescr 2",
+		"alarmTimeStamp": "2030-01-01T15:25:00Z"
+	},
+	{
+		"id": 3,
+		"name": "noteName 3",
+		"description": "noteDescr 3",
+		"alarmTimeStamp": "2026-01-17T20:00:00Z"
+	}
+]

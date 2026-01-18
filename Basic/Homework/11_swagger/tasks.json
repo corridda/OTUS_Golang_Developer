@@ -1,0 +1,26 @@
+[
+	{
+		"id": 1,
+		"name": "taskName 1",
+		"description": "taskDescr 1",
+		"initTimeStamp": "2026-01-13T20:42:58.2970661+03:00",
+		"dueDate": "2026-01-15T00:00:00Z",
+		"status": "Создана"
+	},
+	{
+		"id": 2,
+		"name": "new taskName 2",
+		"description": "new taskDescr 2",
+		"initTimeStamp": "2026-01-13T20:43:10.6241748+03:00",
+		"dueDate": "2030-01-01T00:00:00Z",
+		"status": "Изменена"
+	},
+	{
+		"id": 3,
+		"name": "taskName 3",
+		"description": "taskDescr 3",
+		"initTimeStamp": "2026-01-13T20:44:32.3656166+03:00",
+		"dueDate": "2026-01-15T00:00:00Z",
+		"status": "Создана"
+	}
+]
