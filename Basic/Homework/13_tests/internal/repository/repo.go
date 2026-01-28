@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/10_http/internal/model"
+	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/13_tests/internal/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
@@ -148,7 +148,7 @@ func UpdateJSONFile(filename string) error {
 	return nil
 }
 
-// создать объект типа, реализующего Remindable
+// CreateNewRemindable Создать объект типа, реализующего Remindable
 func CreateNewRemindable(
 	name,
 	descr,
@@ -168,7 +168,7 @@ func CreateNewRemindable(
 	<-chStop
 }
 
-// Сохранить объект типа, реализующего Remindable в сооттв. срезе и json-файле
+// SaveRemindable Сохранить объект типа, реализующего Remindable в сооттв. срезе и json-файле
 func SaveRemindable(
 	remindable Remindable,
 	chStop chan any,
@@ -251,12 +251,12 @@ func FillNotesFromJSON(wg *sync.WaitGroup, errors chan<- error) {
 	}
 }
 
-// Обработка Get-запроса типа /api/items для задач
+// GetTasks Обработка Get-запроса типа /api/items для задач
 func GetTasks(c *gin.Context) {
 	c.JSON(http.StatusOK, Tasks)
 }
 
-// Обработка Get-запрос типа /api/item/id для задач
+// GetTasksById Обработка Get-запрос типа /api/item/id для задач
 func GetTasksById(c *gin.Context) {
 	var taskId RemindableId
 	if err := c.ShouldBindWith(&taskId, binding.Query); err == nil {
@@ -273,12 +273,12 @@ func GetTasksById(c *gin.Context) {
 	}
 }
 
-// Обработка Get-запроса типа /api/items для заметок
+// GetNotes Обработка Get-запроса типа /api/items для заметок
 func GetNotes(c *gin.Context) {
 	c.JSON(http.StatusOK, Notes)
 }
 
-// Обработка Get-запроса типа /api/item/id для заметок
+// GetNotesById Обработка Get-запроса типа /api/item/id для заметок
 func GetNotesById(c *gin.Context) {
 	var NoteId RemindableId
 	if err := c.ShouldBindWith(&NoteId, binding.Query); err == nil {
@@ -295,7 +295,7 @@ func GetNotesById(c *gin.Context) {
 	}
 }
 
-// Обработка Post-запроса типа /api/item для задач
+// PostNewTask Обработка Post-запроса типа /api/item для задач
 func PostNewTask(c *gin.Context) {
 	newTask := NewTask{}
 	err := c.ShouldBindJSON(&newTask)
@@ -324,7 +324,7 @@ func PostNewTask(c *gin.Context) {
 	}
 }
 
-// Обработка Post-запроса типа /api/item для заметок
+// PostNewNote Обработка Post-запроса типа /api/item для заметок
 func PostNewNote(c *gin.Context) {
 	newNote := NewNote{}
 	err := c.ShouldBindJSON(&newNote)
@@ -353,7 +353,7 @@ func PostNewNote(c *gin.Context) {
 	}
 }
 
-// Обработка Put-запроса типа /api/item/id для задач
+// PutTaskById Обработка Put-запроса типа /api/item/id для задач
 func PutTaskById(c *gin.Context) {
 	var taskId RemindableId
 	if err := c.ShouldBindWith(&taskId, binding.Query); err == nil {
@@ -378,7 +378,10 @@ func PutTaskById(c *gin.Context) {
 				Tasks[idx].DueDate = userDueDate
 			}
 			Tasks[idx].Status = model.Updated
-			UpdateJSONFile("tasks.json")
+			if err := UpdateJSONFile("tasks.json"); err != nil {
+				panic(err)
+			}
+
 			c.JSON(http.StatusOK, gin.H{
 				"Изменена задача": Tasks[idx],
 			})
@@ -390,7 +393,7 @@ func PutTaskById(c *gin.Context) {
 	}
 }
 
-// Обработка Put-запроса типа /api/item/id для заметок
+// PutNoteById Обработка Put-запроса типа /api/item/id для заметок
 func PutNoteById(c *gin.Context) {
 	var noteId RemindableId
 	if err := c.ShouldBindWith(&noteId, binding.Query); err == nil {
@@ -414,7 +417,9 @@ func PutNoteById(c *gin.Context) {
 			if changingNote.AlarmTimeStamp != "" && userDueDate != Notes[idx].AlarmTimeStamp {
 				Notes[idx].AlarmTimeStamp = userDueDate
 			}
-			UpdateJSONFile("notes.json")
+			if err := UpdateJSONFile("notes.json"); err != nil {
+				panic(err)
+			}
 			c.JSON(http.StatusOK, gin.H{
 				"Изменена заметка": Notes[idx],
 			})
@@ -426,7 +431,7 @@ func PutNoteById(c *gin.Context) {
 	}
 }
 
-// Обработка Delete-запроса типа /api/item/id для задач
+// DeleteTaskById Обработка Delete-запроса типа /api/item/id для задач
 func DeleteTaskById(c *gin.Context) {
 	var taskId RemindableId
 	if err := c.ShouldBindWith(&taskId, binding.Query); err == nil {
@@ -436,7 +441,9 @@ func DeleteTaskById(c *gin.Context) {
 		if idx >= 0 {
 			deletedTask := Tasks[idx]
 			Tasks = slices.Delete(Tasks, idx, idx+1)
-			UpdateJSONFile("tasks.json")
+			if err := UpdateJSONFile("tasks.json"); err != nil {
+				panic(err)
+			}
 			c.JSON(http.StatusOK, gin.H{
 				"Удалена задача": deletedTask,
 			})
@@ -448,7 +455,7 @@ func DeleteTaskById(c *gin.Context) {
 	}
 }
 
-// Обработка Delete-запроса типа /api/item/id для заметок
+// DeleteNoteById Обработка Delete-запроса типа /api/item/id для заметок
 func DeleteNoteById(c *gin.Context) {
 	var noteId RemindableId
 	if err := c.ShouldBindWith(&noteId, binding.Query); err == nil {
@@ -458,7 +465,9 @@ func DeleteNoteById(c *gin.Context) {
 		if idx >= 0 {
 			deletedNote := Notes[idx]
 			Notes = slices.Delete(Notes, idx, idx+1)
-			UpdateJSONFile("notes.json")
+			if err := UpdateJSONFile("notes.json"); err != nil {
+				panic(err)
+			}
 			c.JSON(http.StatusOK, gin.H{
 				"Удалена заметка": deletedNote,
 			})

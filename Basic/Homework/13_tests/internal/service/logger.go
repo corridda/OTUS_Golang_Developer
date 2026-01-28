@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/10_http/internal/repository"
+	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/13_tests/internal/repository"
 )
 
 var taskHashes [][32]byte

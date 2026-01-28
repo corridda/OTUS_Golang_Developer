@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/10_http/internal/repository"
+	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/13_tests/internal/repository"
 )
 
 func PrintRemidables(mutex *sync.RWMutex) {

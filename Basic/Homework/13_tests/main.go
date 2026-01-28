@@ -9,8 +9,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/10_http/internal/repository"
-	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/10_http/internal/service"
+	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/13_tests/internal/repository"
+	"github.com/corridda/OTUS_Golang_Developer/Basic/Homework/13_tests/internal/service"
 )
 
 func createFiles(fileNames ...string) {
@@ -78,7 +78,7 @@ func main() {
 	apiNotes.GET("items", repository.GetNotes)            // /api/notes/items
 	apiNotes.GET("item/id", repository.GetNotesById)      // /api/notes/item/id/?id=<id_integer_number>
 	apiTasks.POST("item", repository.PostNewTask)         // /api/tasks/item
-	apiNotes.POST("item", repository.PostNewNote)         // /api/tasks/item
+	apiNotes.POST("item", repository.PostNewNote)         // /api/notes/item
 	apiTasks.PUT("item/id", repository.PutTaskById)       // /api/tasks/item/id/?id=<id_integer_number>
 	apiNotes.PUT("item/id", repository.PutNoteById)       // /api/notes/item/id/?id=<id_integer_number>
 	apiTasks.DELETE("item/id", repository.DeleteTaskById) // /api/tasks/item/id/?id=<id_integer_number>
