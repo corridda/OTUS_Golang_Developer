@@ -48,7 +48,11 @@ func TestMain(m *testing.M) {
 				panic(err)
 			}
 			fmt.Printf("Файл %s создан.\n", fileName)
-			defer file.Close()
+			defer func() {
+				if err := file.Close(); err != nil {
+					panic(err)
+				}
+			}()
 		}(fileName)
 	}
 	wg.Wait()
@@ -81,10 +85,11 @@ func TestMain(m *testing.M) {
 	exitCode := m.Run()
 
 	// Удалить ранее созданные json-файлы
-	for _, filename := range []string{"tasks.json", "notes.json"} {
-		if err := os.Remove(filename); err != nil {
+	for _, fileName := range []string{"tasks.json", "notes.json"} {
+		if err := os.Remove(fileName); err != nil {
 			panic(err)
 		}
+		fmt.Printf("Файл %s удален.\n", fileName)
 	}
 
 	// Выход из программы с результатом выполнения тестов
