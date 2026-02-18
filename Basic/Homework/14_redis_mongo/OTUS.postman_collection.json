@@ -1,0 +1,373 @@
+{
+	"info": {
+		"_postman_id": "e6fe8fab-94f9-40e7-b947-14b7db3b340b",
+		"name": "OTUS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25803205"
+	},
+	"item": [
+		{
+			"name": "Golang Developer. Basic",
+			"item": [
+				{
+					"name": "Post new task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"taskName 1\",\r\n    \"description\": \"taskDescr 1\",\r\n    \"dueDate\": \"01.03.2026\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "127.0.0.1:8080/api/tasks/item",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"tasks",
+								"item"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Post new note",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"noteName 1\",\r\n    \"description\": \"noteDescr 1\",\r\n    \"alarmTime\": \"01.03.2026 20:00\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "127.0.0.1:8080/api/notes/item",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"notes",
+								"item"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all tasks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "127.0.0.1:8080/api/tasks/items",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"tasks",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a task by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "127.0.0.1:8080/api/tasks/item/id?id=69959fd9aece410dd54f5739",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"tasks",
+								"item",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "69959fd9aece410dd54f5739"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a note by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "127.0.0.1:8080/api/notes/item/id?id=6995a77f5ae26712e40f1eb1",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"notes",
+								"item",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "6995a77f5ae26712e40f1eb1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all notes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "127.0.0.1:8080/api/notes/items",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"notes",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Put a task by id",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"new taskName 1\",\r\n    \"description\": \"new taskDescr 1\",\r\n    \"dueDate\": \"01.04.2026\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "127.0.0.1:8080/api/tasks/item/id?id=6995ec05f4bd5fac4cb9e9f8",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"tasks",
+								"item",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "6995ec05f4bd5fac4cb9e9f8"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Put a note by id",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"new noteName 1\",\r\n    \"description\": \"new noteDescr 1\",\r\n    \"alarmTimeStamp\": \"01.01.2030 15:25\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "127.0.0.1:8080/api/notes/item/id?id=6995e1cb4df10832c33ad68b",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"notes",
+								"item",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "6995e1cb4df10832c33ad68b"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a task by id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "127.0.0.1:8080/api/tasks/item/id?id=6995ec05f4bd5fac4cb9e9f8",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"tasks",
+								"item",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "6995ec05f4bd5fac4cb9e9f8"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a note by id",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "127.0.0.1:8080/api/notes/item/id?id=6995e1cb4df10832c33ad68b",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"notes",
+								"item",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "6995e1cb4df10832c33ad68b"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
