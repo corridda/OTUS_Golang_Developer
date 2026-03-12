@@ -60,14 +60,23 @@ func CreateNewRemindable(
 	isTask bool,
 ) error {
 	var remindable Remindable
+	var rows_count sql.NullInt64
 	if isTask {
-		task, err := model.NewTask(ctx, db, name, descr, futurePoint)
+		err := db.QueryRowContext(ctx, "SELECT MAX((task #>> '{id}')::int) from tasks").Scan(&rows_count)
+		if err != nil {
+			return fmt.Errorf("ошибка считывания количества строк из БД: %v", err)
+		}
+		task, err := model.NewTask(rows_count, name, descr, futurePoint)
 		if err != nil {
 			return err
 		}
 		remindable = &task
 	} else {
-		note, err := model.NewNote(ctx, db, name, descr, futurePoint)
+		err := db.QueryRowContext(ctx, "SELECT MAX((note #>> '{id}')::int) from notes").Scan(&rows_count)
+		if err != nil {
+			return fmt.Errorf("ошибка считывания количества строк из БД: %v", err)
+		}
+		note, err := model.NewNote(rows_count, name, descr, futurePoint)
 		if err != nil {
 			return err
 		}
@@ -86,19 +95,19 @@ func handleUnique(value any, err error) error {
 	switch v := value.(type) {
 	case *model.Task:
 		s1 = fmt.Sprintf("Ошибка создания/изменения задачи - задача с именем '%s' уже существует", v.Name)
-		s2 = fmt.Sprint("Ошибка создания/изменения задачи")
+		s2 = "Ошибка создания/изменения задачи"
 	case *model.Note:
 		s1 = fmt.Sprintf("Ошибка создания/изменения заметки - заметка с именем '%s' уже существует", v.Name)
-		s2 = fmt.Sprint("Ошибка создания/изменения заметки")
+		s2 = "Ошибка создания/изменения заметки"
 	}
 	if errors.As(err, &pgErr) {
 		if pgErr.Code == pgerrcode.UniqueViolation {
 			// Обработка ошибки вставки в поле с ограничением на уникальность
-			return fmt.Errorf(s1)
+			return fmt.Errorf("%s", s1)
 		}
 	}
 	// Обработка других типов ошибок
-	return fmt.Errorf(s2)
+	return fmt.Errorf("%s", s2)
 }
 
 // SaveRemindable Сохранить объект типа, реализующего Remindable в БД PostgreSQL
@@ -119,7 +128,7 @@ func SaveRemindable(
 		}
 		result, err = db.ExecContext(
 			ctx,
-			`INSERT INTO tasks(task) values($1)`,
+			`INSERT INTO tasks(task) VALUES($1)`,
 			task,
 		)
 		if err != nil {
@@ -135,7 +144,7 @@ func SaveRemindable(
 		}
 		result, err = db.ExecContext(
 			ctx,
-			`INSERT INTO notes(note) values($1)`,
+			`INSERT INTO notes(note) VALUES($1)`,
 			note,
 		)
 		if err != nil {
@@ -155,7 +164,14 @@ func SaveRemindable(
 	return nil
 }
 
-// GetTasks Обработка Get-запроса типа /api/items для задач
+// GetTasks
+// @Summary Получить все задачи
+// @Tags Задачи
+// @Produce	json
+// @Success 200 {string} string "Getting tasks is successful"
+// @Failure 500 {string} string "Getting notes failed due to internal server error"
+// @Router /api/tasks/items [get]
+// Обработка Get-запроса типа /api/items для задач
 func GetTasks(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tasks := make([]model.Task, 0)
@@ -167,7 +183,7 @@ func GetTasks(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 			}
 		}(rows)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"BadRequest": "Ошибка считывания задач из БД"})
+			c.JSON(http.StatusInternalServerError, gin.H{"InternalServerError": "Ошибка считывания задач из БД"})
 			return
 		}
 
@@ -178,7 +194,7 @@ func GetTasks(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 			var createdAt time.Time
 			var updatedAt sql.NullTime
 			if err := rows.Scan(&id, &taskByte, &createdAt, &updatedAt); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"BadRequest": err.Error()})
+				c.JSON(http.StatusInternalServerError, gin.H{"InternalServerError": err.Error()})
 				return
 			}
 			if err = json.Unmarshal(taskByte, &task); err != nil {
@@ -190,7 +206,16 @@ func GetTasks(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 	}
 }
 
-// GetTasksById Обработка Get-запрос типа /api/item/id для задач
+// GetTasksById
+// @Summary Получить задачу по ее идентификатору
+// @Tags Задача по ID
+// @Produce	json
+// @Param id query int true "Task ID"
+// @Success 200 {string} string "Getting the task is successful"
+// @Failure 400 {string} string "Invalid request"
+// @Failure 404 {string} string "Not found: such a task doesn't exist"
+// @Router /api/tasks/item/id [get]
+// Обработка Get-запрос типа /api/item/id для задач
 // id в запросе передается в виде целого неотрицательного числа, большего нуля, напр.:
 // /api/tasks/item/id?id=1
 func GetTasksById(ctx context.Context, db *sql.DB) gin.HandlerFunc {
@@ -201,7 +226,7 @@ func GetTasksById(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 		if err := c.ShouldBindWith(&taskId, binding.Query); err == nil {
 			err := db.QueryRowContext(
 				ctx,
-				"SELECT task FROM tasks WHERE id=$1",
+				"SELECT task FROM tasks WHERE (task #>> '{id}')::int=$1",
 				taskId.Id,
 			).Scan(&taskByte)
 			switch {
@@ -227,7 +252,14 @@ func GetTasksById(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 	}
 }
 
-// GetNotes Обработка Get-запроса типа /api/items для заметок
+// GetNotes
+// @Summary Получить все заметки
+// @Tags Заметки
+// @Produce	json
+// @Success 200 {string} string "Getting notes is successful"
+// @Failure 500 {string} string "Getting notes failed due to internal server error"
+// @Router /api/notes/items [get]
+// Обработка Get-запроса типа /api/items для заметок
 func GetNotes(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		notes := make([]model.Note, 0)
@@ -239,7 +271,7 @@ func GetNotes(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 			}
 		}(rows)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"BadRequest": "Ошибка считывания заметок из БД"})
+			c.JSON(http.StatusInternalServerError, gin.H{"InternalServerError": "Ошибка считывания заметок из БД"})
 			return
 		}
 
@@ -250,7 +282,7 @@ func GetNotes(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 			var createdAt time.Time
 			var updatedAt sql.NullTime
 			if err := rows.Scan(&id, &noteByte, &createdAt, &updatedAt); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"BadRequest": err.Error()})
+				c.JSON(http.StatusInternalServerError, gin.H{"InternalServerError": err.Error()})
 				return
 			}
 			if err = json.Unmarshal(noteByte, &note); err != nil {
@@ -262,7 +294,16 @@ func GetNotes(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 	}
 }
 
-// GetNotesById Обработка Get-запроса типа /api/item/id для заметок
+// GetNotesById
+// @Summary Получить заметку по ее идентификатору
+// @Tags Заметка по ID
+// @Produce	json
+// @Param id query int true "Note ID"
+// @Success 200 {string} string "Getting the note is successful"
+// @Failure 400 {string} string "Invalid request"
+// @Failure 404 {string} string "Not found: such a note doesn't exist"
+// @Router /api/notes/item/id [get]
+// Обработка Get-запроса типа /api/item/id для заметок
 // id в запросе передается в виде целого неотрицательного числа, большего нуля, напр.:
 // /api/notes/item/id?id=1
 func GetNotesById(ctx context.Context, db *sql.DB) gin.HandlerFunc {
@@ -273,7 +314,7 @@ func GetNotesById(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 		if err := c.ShouldBindWith(&noteId, binding.Query); err == nil {
 			err := db.QueryRowContext(
 				ctx,
-				"SELECT note FROM notes WHERE id=$1",
+				"SELECT note FROM notes WHERE (note #>> '{id}')::int=$1",
 				noteId.Id,
 			).Scan(&noteByte)
 			switch {
@@ -299,7 +340,16 @@ func GetNotesById(ctx context.Context, db *sql.DB) gin.HandlerFunc {
 	}
 }
 
-// PostNewTask Обработка Post-запроса типа /api/item для задач
+// PostNewTask
+// @Summary Создать новую задачу
+// @Tags Новая задача
+// @Accept	json
+// @Produce	json
+// @Param newTask body NewTask true "Task data" body is the new task attributes
+// @Success 200 {string} string "The task has been successfully created"
+// @Failure 400 {string} string "Invalid request: the task hasn't been created"
+// @Router /api/tasks/item [post]
+// Обработка Post-запроса типа /api/item для задач
 func PostNewTask(
 	ctx context.Context,
 	db *sql.DB,
@@ -328,7 +378,7 @@ func PostNewTask(
 		c.JSON(http.StatusOK, gin.H{"OK": "Создана новая задача"})
 		result, err := db.ExecContext(
 			ctx,
-			`insert into remindables_log(description) values($1)`,
+			`INSERT INTO remindables_log(description) VALUES($1)`,
 			fmt.Sprintf("Создана новая задача %v", newTask.Name),
 		)
 		if err != nil {
@@ -349,7 +399,16 @@ func PostNewTask(
 	}
 }
 
-// PostNewNote Обработка Post-запроса типа /api/item для заметок
+// PostNewNote
+// @Summary Создать новую заметку
+// @Tags Новая заметка
+// @Accept	json
+// @Produce	json
+// @Param newNote body NewNote true "Note data" body is the new note attributes
+// @Success 200 {string} string "The note has been successfully created"
+// @Failure 400 {string} string "Invalid request: the note hasn't been created"
+// @Router /api/notes/item [post]
+// Обработка Post-запроса типа /api/item для заметок
 func PostNewNote(
 	ctx context.Context,
 	db *sql.DB,
@@ -378,7 +437,7 @@ func PostNewNote(
 		c.JSON(http.StatusOK, gin.H{"OK": "Создана новая заметка"})
 		result, err := db.ExecContext(
 			ctx,
-			`insert into remindables_log(description) values($1)`,
+			`INSERT INTO remindables_log(description) VALUES($1)`,
 			fmt.Sprintf("Создана новая заметка %v", newNote.Name),
 		)
 		if err != nil {
@@ -399,7 +458,17 @@ func PostNewNote(
 	}
 }
 
-// PutTaskById Обработка Put-запроса типа /api/item/id для задач
+// PutTaskById
+// @Summary Изменить задачу по ее ID
+// @Tags Изменить задачу
+// @Accept	json
+// @Produce	json
+// @Param id query int true "Task ID"
+// @Param updatedTask body ChangingTask true "Task data" body is the updating task attributes
+// @Success 200 {string} string "The task has been successfully updated"
+// @Failure 400 {string} string "Invalid request: the task hasn't been updated"
+// @Router /api/tasks/item/id [put]
+// Обработка Put-запроса типа /api/item/id для задач
 // id в запросе передается в виде целого неотрицательного числа, большего нуля, напр.:
 // /api/tasks/item/id?id=1
 func PutTaskById(
@@ -413,7 +482,7 @@ func PutTaskById(
 		if err := c.ShouldBindWith(&taskId, binding.Query); err == nil {
 			err := db.QueryRowContext(
 				ctx,
-				"SELECT task FROM tasks WHERE id=$1",
+				"SELECT task FROM tasks WHERE (task #>> '{id}')::int=$1",
 				taskId.Id,
 			).Scan(&taskByte)
 			switch {
@@ -453,7 +522,7 @@ func PutTaskById(
 				result, err := db.ExecContext(ctx, `
 					UPDATE tasks
 					SET task = $1, updated_at = now()
-					WHERE id = $2`,
+					WHERE (task #>> '{id}')::int = $2`,
 					taskJSON, task.Id,
 				)
 				if err != nil {
@@ -470,7 +539,7 @@ func PutTaskById(
 				c.JSON(http.StatusOK, gin.H{"Изменена задача": task})
 				result, err = db.ExecContext(
 					ctx,
-					`insert into remindables_log(description) values($1)`,
+					`INSERT INTO remindables_log(description) VALUES($1)`,
 					fmt.Sprintf("Изменена задача %v", task.Name),
 				)
 				if err != nil {
@@ -496,7 +565,17 @@ func PutTaskById(
 	}
 }
 
-// PutNoteById Обработка Put-запроса типа /api/item/id для заметок
+// PutNoteById
+// @Summary Изменить заметку по ее ID
+// @Tags Изменить заметку
+// @Accept	json
+// @Produce	json
+// @Param id query int true "Note ID"
+// @Param updatedNote body ChangingNote true "Note data" body is the updating note attributes
+// @Success 200 {string} string "The note has been successfully updated"
+// @Failure 400 {string} string "Invalid request: the note hasn't been updated"
+// @Router /api/notes/item/id [put]
+// Обработка Put-запроса типа /api/item/id для заметок
 // id в запросе передается в виде целого неотрицательного числа, большего нуля, напр.:
 // /api/notes/item/id?id=1
 func PutNoteById(
@@ -510,7 +589,7 @@ func PutNoteById(
 		if err := c.ShouldBindWith(&noteId, binding.Query); err == nil {
 			err := db.QueryRowContext(
 				ctx,
-				"SELECT note FROM notes WHERE id=$1",
+				"SELECT note FROM notes WHERE (note #>> '{id}')::int=$1",
 				noteId.Id,
 			).Scan(&noteByte)
 			switch {
@@ -549,7 +628,7 @@ func PutNoteById(
 				result, err := db.ExecContext(ctx, `
 					UPDATE notes
 					SET note = $1, updated_at = now()
-					WHERE id = $2`,
+					WHERE (note #>> '{id}')::int = $2`,
 					noteJSON, note.Id,
 				)
 				if err != nil {
@@ -566,7 +645,7 @@ func PutNoteById(
 				c.JSON(http.StatusOK, gin.H{"Изменена заметка": note})
 				result, err = db.ExecContext(
 					ctx,
-					`insert into remindables_log(description) values($1)`,
+					`INSERT INTO remindables_log(description) VALUES($1)`,
 					fmt.Sprintf("Изменена заметка %v", note.Name),
 				)
 				if err != nil {
@@ -592,7 +671,16 @@ func PutNoteById(
 	}
 }
 
-// DeleteTaskById Обработка Delete-запроса типа /api/item/id для задач
+// DeleteTaskById
+// @Summary Удалить задачу по ее ID
+// @Tags Удалить задачу
+// @Produce	json
+// @Param id query int true "Task ID"
+// @Success 200 {string} string "The task has been successfully deleted"
+// @Failure 400 {string} string "Invalid request: the task hasn't been deleted"
+// @Failure 404 {string} string "Not found: such a task doesn't exist"
+// @Router /api/tasks/item/id [delete]
+// Обработка Delete-запроса типа /api/item/id для задач
 // id в запросе передается в виде целого неотрицательного числа, большего нуля, напр.:
 // /api/tasks/item/id?id=1
 func DeleteTaskById(ctx context.Context, db *sql.DB,
@@ -604,7 +692,7 @@ func DeleteTaskById(ctx context.Context, db *sql.DB,
 		if err := c.ShouldBindWith(&taskId, binding.Query); err == nil {
 			err := db.QueryRowContext(
 				ctx,
-				"SELECT task FROM tasks WHERE id=$1",
+				"SELECT task FROM tasks WHERE (task #>> '{id}')::int=$1",
 				taskId.Id,
 			).Scan(&taskByte)
 			switch {
@@ -622,7 +710,7 @@ func DeleteTaskById(ctx context.Context, db *sql.DB,
 				}
 				result, err := db.ExecContext(ctx, `
 					DELETE from tasks
-					WHERE id = $1`,
+					WHERE (task #>> '{id}')::int = $1`,
 					task.Id,
 				)
 				if err != nil {
@@ -639,7 +727,7 @@ func DeleteTaskById(ctx context.Context, db *sql.DB,
 				c.JSON(http.StatusOK, gin.H{"Удалена задача": task})
 				result, err = db.ExecContext(
 					ctx,
-					`insert into remindables_log(description) values($1)`,
+					`INSERT INTO remindables_log(description) VALUES($1)`,
 					fmt.Sprintf("Удалена задача %v", task.Name),
 				)
 				if err != nil {
@@ -665,7 +753,16 @@ func DeleteTaskById(ctx context.Context, db *sql.DB,
 	}
 }
 
-// DeleteNoteById Обработка Delete-запроса типа /api/item/id для заметок
+// DeleteNoteById
+// @Summary Удалить заметку по ее ID
+// @Tags Удалить заметку
+// @Produce	json
+// @Param id query int true "Note ID"
+// @Success 200 {string} string "The note has been successfully deleted"
+// @Failure 400 {string} string "Invalid request: the note hasn't been deleted"
+// @Failure 404 {string} string "Not found: such a note doesn't exist"
+// @Router /api/notes/item/id [delete]
+// Обработка Delete-запроса типа /api/item/id для заметок
 // id в запросе передается в виде целого неотрицательного числа, большего нуля, напр.:
 // /api/notes/item/id?id=1
 func DeleteNoteById(ctx context.Context, db *sql.DB,
@@ -677,7 +774,7 @@ func DeleteNoteById(ctx context.Context, db *sql.DB,
 		if err := c.ShouldBindWith(&noteId, binding.Query); err == nil {
 			err := db.QueryRowContext(
 				ctx,
-				"SELECT note FROM notes WHERE id=$1",
+				"SELECT note FROM notes WHERE (note #>> '{id}')::int=$1",
 				noteId.Id,
 			).Scan(&noteByte)
 			switch {
@@ -695,7 +792,7 @@ func DeleteNoteById(ctx context.Context, db *sql.DB,
 				}
 				result, err := db.ExecContext(ctx, `
 					DELETE from notes
-					WHERE id = $1`,
+					WHERE (note #>> '{id}')::int = $1`,
 					note.Id,
 				)
 				if err != nil {
@@ -712,7 +809,7 @@ func DeleteNoteById(ctx context.Context, db *sql.DB,
 				c.JSON(http.StatusOK, gin.H{"Удалена заметка": note})
 				result, err = db.ExecContext(
 					ctx,
-					`insert into remindables_log(description) values($1)`,
+					`INSERT INTO remindables_log(description) VALUES($1)`,
 					fmt.Sprintf("Удалена заметка %v", note.Name),
 				)
 				if err != nil {

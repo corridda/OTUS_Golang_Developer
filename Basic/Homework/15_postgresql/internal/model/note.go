@@ -1,7 +1,6 @@
 package model
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -15,29 +14,40 @@ type Note struct {
 	AlarmTimeStamp time.Time `json:"alarmTimeStamp"` // Сигнал напоминания в эту дату-время
 }
 
-func NewNote(ctx context.Context, db *sql.DB, name, descr, alarmDateTime string) (Note, error) {
-	var rows_count int
-	err := db.QueryRowContext(ctx, "SELECT COUNT(*) from notes").Scan(&rows_count)
-	if err != nil {
-		return Note{}, fmt.Errorf("Ошибка считывания количества строк из БД: %v", err)
-	}
-
+// NewNote генерирует и возвращает новую заметку
+func NewNote(rows_count sql.NullInt64, name, descr, alarmDateTime string) (Note, error) {
 	userDueDate, err := time.Parse("02.01.2006 15:04", alarmDateTime)
 	if err != nil {
 		log.Println("Введенные дата и время напоминания имеют не корректный формат.")
+		if rows_count.Valid {
+			return Note{
+				Id:          int(rows_count.Int64 + 1),
+				Name:        name,
+				Description: descr,
+			}, nil
+		} else {
+			return Note{
+				Id:          1,
+				Name:        name,
+				Description: descr,
+			}, nil
+		}
+
+	}
+	if rows_count.Valid {
 		return Note{
-			Id:          rows_count + 1,
-			Name:        name,
-			Description: descr,
-		}, nil
-	} else {
-		return Note{
-			Id:             rows_count + 1,
+			Id:             int(rows_count.Int64 + 1),
 			Name:           name,
 			Description:    descr,
 			AlarmTimeStamp: userDueDate,
 		}, nil
 	}
+	return Note{
+		Id:             1,
+		Name:           name,
+		Description:    descr,
+		AlarmTimeStamp: userDueDate,
+	}, nil
 }
 
 // String реализует repository.Remindable

@@ -1,7 +1,6 @@
 package model
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -30,26 +29,33 @@ type Task struct {
 	Status        string    `json:"status"`
 }
 
-func NewTask(ctx context.Context, db *sql.DB, name, descr, dueDate string) (Task, error) {
-	var rows_count int
-	err := db.QueryRowContext(ctx, "SELECT COUNT(*) from tasks").Scan(&rows_count)
-	if err != nil {
-		return Task{}, fmt.Errorf("Ошибка считывания количества строк из БД: %v", err)
-	}
-
+// NewTask генерирует и возвращает новую задачу
+func NewTask(rows_count sql.NullInt64, name, descr, dueDate string) (Task, error) {
 	userDueDate, err := time.Parse("02.01.2006", dueDate)
 	if err != nil {
 		log.Println("Введенная дата исполнения имеет не корректный формат.")
+		if rows_count.Valid {
+			return Task{
+				Id:            int(rows_count.Int64 + 1),
+				Name:          name,
+				Description:   descr,
+				InitTimeStamp: time.Now(),
+				Status:        Created,
+			}, nil
+		} else {
+			return Task{
+				Id:            1,
+				Name:          name,
+				Description:   descr,
+				InitTimeStamp: time.Now(),
+				Status:        Created,
+			}, nil
+		}
+
+	}
+	if rows_count.Valid {
 		return Task{
-			Id:            rows_count + 1,
-			Name:          name,
-			Description:   descr,
-			InitTimeStamp: time.Now(),
-			Status:        Created,
-		}, nil
-	} else {
-		return Task{
-			Id:            rows_count + 1,
+			Id:            int(rows_count.Int64 + 1),
 			Name:          name,
 			Description:   descr,
 			InitTimeStamp: time.Now(),
@@ -57,6 +63,14 @@ func NewTask(ctx context.Context, db *sql.DB, name, descr, dueDate string) (Task
 			Status:        Created,
 		}, nil
 	}
+	return Task{
+		Id:            1,
+		Name:          name,
+		Description:   descr,
+		InitTimeStamp: time.Now(),
+		DueDate:       userDueDate,
+		Status:        Created,
+	}, nil
 }
 
 // String реализует repository.Remindable
