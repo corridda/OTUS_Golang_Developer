@@ -1,0 +1,129 @@
+// protoc -I. -I path_to_probuf\include --go_out=. --go-grpc_out=. api/grpc/v1/remindables.proto
+syntax = "proto3";
+
+package remindables.v1;
+
+option go_package = "pkg/grpc/v1/remindables_api";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+
+message GetTaskRequest{
+  int32 id = 1;
+}
+
+message GetNoteRequest{
+  int32 id = 1;
+}
+
+message PostNewTaskRequest{
+  string name = 1;
+  string description = 2;
+  google.protobuf.Timestamp dueDate = 3;
+}
+
+message PostNewNoteRequest{
+  string name = 1;
+  string description = 2;
+  google.protobuf.Timestamp alarmTimeStamp = 3;
+}
+
+message PutTaskRequest{
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp dueDate = 4;
+}
+
+message PutNoteRequest{
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp alarmTimeStamp = 4;
+}
+
+message DeleteTaskRequest{
+  int32 id = 1;
+}
+
+message DeleteNoteRequest{
+  int32 id = 1;
+}
+
+message GetTaskResponse{
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp initTimeStamp = 4;
+  google.protobuf.Timestamp dueDate = 5;
+  string status = 6;
+}
+
+message GetNoteResponse{
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp alarmTimeStamp = 4;
+}
+
+message PostNewTaskResponse{
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp initTimeStamp = 4;
+  google.protobuf.Timestamp dueDate = 5;
+  string status = 6;
+}
+
+message PostNewNoteResponse{
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp alarmTimeStamp = 4;
+}
+
+message PutTaskResponse{
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp initTimeStamp = 4;
+  google.protobuf.Timestamp dueDate = 5;
+  string status = 6;
+}
+
+message PutNoteResponse{
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp alarmTimeStamp = 4;
+}
+
+message DeleteTaskResponse{
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp initTimeStamp = 4;
+  google.protobuf.Timestamp dueDate = 5;
+  string status = 6;
+}
+
+message DeleteNoteResponse{
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp alarmTimeStamp = 4;
+}
+
+service RemindablesService {
+  rpc GetTasks(google.protobuf.Empty) returns (stream GetTaskResponse);
+  rpc GetNotes(google.protobuf.Empty) returns (stream GetNoteResponse);
+  rpc GetTasksById(GetTaskRequest) returns (GetTaskResponse);
+  rpc GetNotesById(GetNoteRequest) returns (GetNoteResponse);
+  rpc PostNewTask(PostNewTaskRequest) returns (PostNewTaskResponse);
+  rpc PostNewNote(PostNewNoteRequest) returns (PostNewNoteResponse);
+  rpc PutTaskById(PutTaskRequest) returns (PutTaskResponse);
+  rpc PutNoteById(PutNoteRequest) returns (PutNoteResponse);
+  rpc DeleteTaskById(DeleteTaskRequest) returns (DeleteTaskResponse);
+  rpc DeleteNoteById(DeleteNoteRequest) returns (DeleteNoteResponse);
+}
